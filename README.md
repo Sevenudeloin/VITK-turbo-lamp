@@ -30,6 +30,5 @@ VTK/ITK Project (IMAGE S8)
 
 `jupyter notebook` ou `jupyter lab` 
 
-### Dans jupyter, aller dans 'Kernel', puis 'Change Kernel', et choisir
-"({name}-venv)" (ou juste "{name}-venv" jsp comment il sera affiché)
+### Dans jupyter, aller dans 'Kernel', puis 'Change Kernel', et choisir "(VITK-venv)"
 
