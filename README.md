@@ -9,11 +9,13 @@ VTK/ITK Project (IMAGE S8)
 ## Installation et setup :
 
 `pip install virtualenv`
+
 `python3 -m virtualenv VITK-venv`
 
 ## Pour interagir avec le venv :
 
 `source VITK-venv/bin/activate` pour entrer dans le venv
+
 `deactivate` pour quitter le venv
 
 ## Ensuite installer les packages dans le venv avec : 
