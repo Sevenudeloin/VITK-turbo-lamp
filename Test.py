@@ -7,9 +7,14 @@ import matplotlib.pyplot as plt
 from visual_image import visual
 from registration import registration
 
-def segment_tumor_2d(slice_2d, seedX=110, seedY=100, lower=180, upper=255):
-    smoother = itk.GradientAnisotropicDiffusionImageFilter.New(Input=slice_2d, NumberOfIterations=20, TimeStep=0.04,
-                                                               ConductanceParameter=3)
+def segment_tumor_2d(slice_2d, seedX=125, seedY=70, lower=100, upper=255):
+    normalize = itk.RescaleIntensityImageFilter.New(Input=slice_2d)
+    normalize.SetOutputMinimum(0)
+    normalize.SetOutputMaximum(255)
+    normalize.Update()
+    
+    smoother = itk.GradientAnisotropicDiffusionImageFilter.New(Input=normalize.GetOutput(), NumberOfIterations=20,
+                                                               TimeStep=0.04, ConductanceParameter=3)
     smoother.Update()
 
     connected_threshold = smoother
@@ -20,12 +25,9 @@ def segment_tumor_2d(slice_2d, seedX=110, seedY=100, lower=180, upper=255):
     connected_threshold.SetSeed((seedX, seedY))
     connected_threshold.Update()
 
-    # in_type = itk.output(connected_threshold)
-    # output_type = itk.Image[itk.UC, slice_2d.GetImageDimension()]
-    # rescaler = itk.RescaleIntensityImageFilter[in_type, output_type].New(Input=connected_threshold.GetOutput())
-    # rescaler.SetOutputMinimum(0)
-    # rescaler.SetOutputMaximum(255)
-    # rescaler.Update()
+    # plt.ion()
+    # plt.imshow(connected_threshold.GetOutput(), cmap="gray")
+    # plt.show()
 
     return connected_threshold.GetOutput()
 
@@ -46,9 +48,9 @@ def segment_tumor(input_image, output_path):
     print("File Written")
 
 if __name__ == "__main__":
-    print("registration")
-    registration()
-    print("end of registration")
+    # print("registration")
+    # registration()
+    # print("end of registration")
 
     fixed_filepath = "./Data/case6_gre1_differenceafter.nrrd"
     moving_filepath = "./Data/case6_gre2_registered_rigid.nrrd"
