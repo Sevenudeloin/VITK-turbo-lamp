@@ -52,14 +52,15 @@ if __name__ == "__main__":
     # registration()
     # print("end of registration")
 
-    fixed_filepath = "./Data/case6_gre1_differenceafter.nrrd"
+    fixed_filepath = "./Data/case6_gre1.nrrd"
     moving_filepath = "./Data/case6_gre2_registered_rigid.nrrd"
-    output_filepath = "./Data/result.nrrd"
+    fixed_output_filepath = "./Data/case6_gre1_result.nrrd"
+    moving_output_filepath = "./Data/case6_gre2_result.nrrd"
 
-    # fixed_image = itk.imread(fixed_filepath, pixel_type=itk.F)
+    fixed_image = itk.imread(fixed_filepath, pixel_type=itk.F)
     moving_image = itk.imread(moving_filepath, pixel_type=itk.F)
-    # segment_tumor(fixed_image, output_filepath)
-    segment_tumor(moving_image, output_filepath)
-    visual(output_filepath)
+    segment_tumor(fixed_image, fixed_output_filepath)
+    segment_tumor(moving_image, moving_output_filepath)
+    visual(fixed_output_filepath)
     # visual(moving_filepath)
 
