@@ -54,6 +54,7 @@ if __name__ == "__main__":
 
     fixed_filepath = "./Data/case6_gre1.nrrd"
     moving_filepath = "./Data/case6_gre2_registered_rigid.nrrd"
+
     fixed_output_filepath = "./Data/case6_gre1_result.nrrd"
     moving_output_filepath = "./Data/case6_gre2_result.nrrd"
 
