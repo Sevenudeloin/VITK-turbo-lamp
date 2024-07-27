@@ -4,7 +4,8 @@ import numpy as np
 from vtkmodules.util import numpy_support
 import matplotlib.pyplot as plt
 
-import visual_image
+from visual_image import visual
+from registration import registration
 
 def segment_tumor_2d(slice_2d, seedX=110, seedY=100, lower=180, upper=255):
     smoother = itk.GradientAnisotropicDiffusionImageFilter.New(Input=slice_2d, NumberOfIterations=20, TimeStep=0.04,
@@ -12,12 +13,12 @@ def segment_tumor_2d(slice_2d, seedX=110, seedY=100, lower=180, upper=255):
     smoother.Update()
 
     connected_threshold = smoother
-    # connected_threshold = itk.ConnectedThresholdImageFilter.New(Input=connected_threshold)
-    # connected_threshold.SetReplaceValue(255)
-    # connected_threshold.SetLower(lower)
-    # connected_threshold.SetUpper(upper)
-    # connected_threshold.SetSeed((seedX, seedY))
-    # connected_threshold.Update()
+    connected_threshold = itk.ConnectedThresholdImageFilter.New(Input=connected_threshold)
+    connected_threshold.SetReplaceValue(255)
+    connected_threshold.SetLower(lower)
+    connected_threshold.SetUpper(upper)
+    connected_threshold.SetSeed((seedX, seedY))
+    connected_threshold.Update()
 
     # in_type = itk.output(connected_threshold)
     # output_type = itk.Image[itk.UC, slice_2d.GetImageDimension()]
@@ -45,13 +46,18 @@ def segment_tumor(input_image, output_path):
     print("File Written")
 
 if __name__ == "__main__":
-    fixed_filepath = "./Data/case6_gre1.nrrd"
-    moving_filepath = "./Data/case6_gre2.nrrd"
+    print("registration")
+    registration()
+    print("end of registration")
+
+    fixed_filepath = "./Data/case6_gre1_differenceafter.nrrd"
+    moving_filepath = "./Data/case6_gre2_registered_rigid.nrrd"
     output_filepath = "./Data/result.nrrd"
 
-    fixed_image = itk.imread(fixed_filepath, pixel_type=itk.F)
-    # moving_image = itk.imread(moving_filepath, PixelType)
-    segment_tumor(fixed_image, output_filepath)
-    visual_image.visual(output_filepath)
-    # visual_image.visual(fixed_filepath)
+    # fixed_image = itk.imread(fixed_filepath, pixel_type=itk.F)
+    moving_image = itk.imread(moving_filepath, pixel_type=itk.F)
+    # segment_tumor(fixed_image, output_filepath)
+    segment_tumor(moving_image, output_filepath)
+    visual(output_filepath)
+    # visual(moving_filepath)
 
