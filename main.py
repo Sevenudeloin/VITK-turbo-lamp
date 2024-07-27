@@ -117,7 +117,7 @@ def registration():
     # writer2.SetFileName("./Data/case6_gre2_differencebefore.nrrd")
     # writer2.Update()
 
-def segment_tumor_2d(slice_2d, seedX=125, seedY=70, lower=100, upper=200):
+def segment_tumor_2d(slice_2d, seedX=125, seedY=65, lower=100, upper=200):
     normalize = itk.RescaleIntensityImageFilter.New(Input=slice_2d)
     normalize.SetOutputMinimum(0)
     normalize.SetOutputMaximum(255)
