@@ -12,7 +12,7 @@ def segment_tumor_2d(slice_2d, seedX=125, seedY=70, lower=100, upper=255):
     normalize.SetOutputMinimum(0)
     normalize.SetOutputMaximum(255)
     normalize.Update()
-    
+
     smoother = itk.GradientAnisotropicDiffusionImageFilter.New(Input=normalize.GetOutput(), NumberOfIterations=20,
                                                                TimeStep=0.04, ConductanceParameter=3)
     smoother.Update()
