@@ -8,27 +8,28 @@ VTK/ITK Project (IMAGE S8)
 
 ## Installation et setup :
 
+### Installation de l'environnement virtuel
+
+Python 3.10.12
+
 `pip install virtualenv`
 
 `python3 -m virtualenv VITK-venv`
 
-## Pour interagir avec le venv :
+### Pour interagir avec l'environnement virtuel :
 
 `source VITK-venv/bin/activate` pour entrer dans le venv
 
 `deactivate` pour quitter le venv
 
-## Ensuite installer les packages dans le venv avec : 
+### Installer les packages dans le venv avec :
 
 `pip install -r requirements.txt`
 
-### Puis, toujours dans le venv faire la commande suivante pour avoir le kernel jupyter associé :
+### Lancer le projet avec la commande suivante :
 
-`python3 -m ipykernel install --user --name VITK-venv --display-name "(VITK-venv)"`
+`python main.py`
 
-### ensuite, lancer le notebook depuis la racine du projet via :
+## Informations complémentaires
 
-`jupyter notebook` ou `jupyter lab` 
-
-### Dans jupyter, aller dans 'Kernel', puis 'Change Kernel', et choisir "(VITK-venv)"
-
+Le document de présentation du projet est disponible ici : `./Rapport_VITK.pdf`.
