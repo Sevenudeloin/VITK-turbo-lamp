@@ -1,5 +1,6 @@
 import itk
 import vtk
+from vtkmodules.util import numpy_support
 import numpy as np
 
 # Load the fixed and moving images
@@ -158,7 +159,6 @@ def segment_tumor(input_image, output_path):
     print("Segmentation done")
 
 def visualize2D():
-    # Import brain images and their respective mask from the segmentation
     brain_image1 = vtk.vtkNrrdReader()
     brain_image1.SetFileName("./Data/case6_gre1.nrrd")
     brain_image1.Update()
@@ -175,7 +175,33 @@ def visualize2D():
     tumor_mask2.SetFileName("./Data/case6_gre2_result.nrrd")
     tumor_mask2.Update()
 
-    # Set dimension variables for saggital view
+    def clean_mask(vtk_mask):
+        dims = vtk_mask.GetDimensions()
+        scalars = vtk_mask.GetPointData().GetScalars()
+        mask_np = np.reshape(numpy_support.vtk_to_numpy(scalars), dims, order='F')
+        
+        # Dirty fix for first and last slices
+        mask_np[:, :, :30] = 0
+        mask_np[:, :, 140:] = 0
+        
+        new_scalars = numpy_support.numpy_to_vtk(mask_np.ravel(order='F'), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+        vtk_mask.GetPointData().SetScalars(new_scalars)
+    clean_mask(tumor_mask1.GetOutput())
+    clean_mask(tumor_mask2.GetOutput())
+
+    brain_image1_total = np.count_nonzero(itk.imread("./Data/case6_gre1.nrrd"))
+    brain_image2_total = np.count_nonzero(itk.imread("./Data/case6_gre2.nrrd"))
+
+    tumor_mask1_np = itk.imread("./Data/case6_gre1_result.nrrd")
+    tumor_mask1_np[:, :, :30] = 0
+    tumor_mask1_np[:, :, 140:] = 0
+    tumor_size1 = np.count_nonzero(tumor_mask1_np)
+
+    tumor_mask2_np = itk.imread("./Data/case6_gre2_result.nrrd")
+    tumor_mask2_np[:, :, :30] = 0
+    tumor_mask2_np[:, :, 140:] = 0
+    tumor_size2 = np.count_nonzero(tumor_mask2_np)
+
     (xMin, xMax, yMin, yMax, zMin, zMax) = brain_image1.GetExecutive().GetWholeExtent(brain_image1.GetOutputInformation(0))
     (xSpacing, ySpacing, zSpacing) = brain_image1.GetOutput().GetSpacing()
     (x0, y0, z0) = brain_image1.GetOutput().GetOrigin()
@@ -184,19 +210,19 @@ def visualize2D():
             y0 + ySpacing * 0.5 * (yMin + yMax),
             z0 + zSpacing * 0.5 * (zMin + zMax)]
     
+    # Matrices for sagittal
     sagittal = vtk.vtkMatrix4x4()
     sagittal.DeepCopy((1, 0, 0, center[0],
                     0,-1, 0, center[1],
                     0, 0, 1, center[2],
                     0, 0, 0, 1))
-    
     # Create renderers for each image
     renderer1 = vtk.vtkRenderer()
     renderer2 = vtk.vtkRenderer()
 
     # Create render window and interactor
     render_window = vtk.vtkRenderWindow()
-    render_window.SetSize(800, 400)
+    render_window.SetSize(800, 400)  # Set window size to accommodate side by side views
 
     render_window.AddRenderer(renderer1)
     render_window.AddRenderer(renderer2)
@@ -216,8 +242,6 @@ def visualize2D():
         lut.SetTableValue(1, 1.0, 0.0, 0.0, 0.7)  # Tumor: red with opacity
         lut.Build()
         return lut
-    
-    # Function to create a lookup table to give some details of the rest of the brain
     def lut_actor():
         lut = vtk.vtkLookupTable()
         lut.SetRange(0, 500)
@@ -226,8 +250,6 @@ def visualize2D():
         lut.SetRampToLinear()
         lut.Build()
         return lut
-    
-    ### Handle left side (image 1)
     reslice1 = vtk.vtkImageReslice()
     reslice1.SetInputData(brain_image1.GetOutput())
     reslice1.SetOutputDimensionality(2)
@@ -240,7 +262,6 @@ def visualize2D():
     reslice1_mask.SetResliceAxes(sagittal) # Change view here
     reslice1_mask.SetInterpolationModeToLinear()
 
-    ## Image 1
     color1 = vtk.vtkImageMapToColors()
     color1.SetLookupTable(lut_actor())
     color1.SetInputConnection(reslice1.GetOutputPort())
@@ -250,7 +271,7 @@ def visualize2D():
     image_actor1.GetMapper().SetInputConnection(color1.GetOutputPort())
     image_actor1.GetProperty().SetOpacity(0.5)  # Light white
 
-    ## Mask 1
+    # Create a lookup table and map the mask to colors
     lut1 = create_lookup_table()
     map_to_colors1 = vtk.vtkImageMapToColors()
     map_to_colors1.SetInputData(reslice1_mask.GetOutput())
@@ -264,8 +285,6 @@ def visualize2D():
     # Add actors to the renderer
     renderer1.AddActor(image_actor1)
     renderer1.AddActor(mask_actor1)
-
-    ### Handle right side (image 2)
     reslice2 = vtk.vtkImageReslice()
     reslice2.SetInputData(brain_image2.GetOutput())
     reslice2.SetOutputDimensionality(2)
@@ -278,7 +297,6 @@ def visualize2D():
     reslice2_mask.SetResliceAxes(sagittal) # Change view here
     reslice2_mask.SetInterpolationModeToLinear()
 
-    ## Image 2
     color2 = vtk.vtkImageMapToColors()
     color2.SetLookupTable(lut_actor())
     color2.SetInputConnection(reslice2.GetOutputPort())
@@ -288,7 +306,7 @@ def visualize2D():
     image_actor2.GetMapper().SetInputConnection(color2.GetOutputPort())
     image_actor2.GetProperty().SetOpacity(0.5)  # Light white
 
-    ## Mask 2
+    # Create a lookup table and map the mask to colors
     lut2 = create_lookup_table()
     map_to_colors2 = vtk.vtkImageMapToColors()
     map_to_colors2.SetInputData(reslice2_mask.GetOutput())
@@ -302,14 +320,19 @@ def visualize2D():
     # Add actors to the renderer
     renderer2.AddActor(image_actor2)
     renderer2.AddActor(mask_actor2)
+    cornerAnnotation1 = vtk.vtkCornerAnnotation()
+    cornerAnnotation2 = vtk.vtkCornerAnnotation()
 
-    ### Start rendering
+    renderer1.AddViewProp(cornerAnnotation1)
+    renderer2.AddViewProp(cornerAnnotation2)
     interactorStyle = vtk.vtkInteractorStyleImage()
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetInteractorStyle(interactorStyle)
     render_window.SetInteractor(interactor)
     render_window.Render()
 
+    cornerAnnotation1.SetText(2, f"Total size of the tumor: {int(tumor_size1)}px \n which is {(tumor_size1 * 100)/ brain_image1_total:.2f}% of the whole mri")
+    cornerAnnotation2.SetText(2, f"Total size of the tumor: {int(tumor_size2)}px \n which is {(tumor_size2 * 100)/ brain_image2_total:.2f}% of the whole mri \n and is a difference of: {int(tumor_size2 * 100 / tumor_size1) - 100} %")
     # Create callbacks for slicing the image
     actions = {}
     actions["Slicing"] = 0
@@ -335,11 +358,11 @@ def visualize2D():
                 matrix.SetElement(1, 3, center[1])
                 matrix.SetElement(2, 3, center[2])
 
-            # Update displayed slice for all images/masks
             update_slice(reslice1)
             update_slice(reslice1_mask)
             update_slice(reslice2)
             update_slice(reslice2_mask)
+
             render_window.Render()
         else:
             interactorStyle.OnMouseMove()
@@ -347,7 +370,6 @@ def visualize2D():
     interactorStyle.AddObserver("MouseMoveEvent", MouseMoveCallback)
     interactorStyle.AddObserver("LeftButtonPressEvent", ButtonCallback)
     interactorStyle.AddObserver("LeftButtonReleaseEvent", ButtonCallback)
-
     # Start interaction
     interactor.Start()
     del render_window
